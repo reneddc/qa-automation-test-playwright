@@ -1,103 +1,86 @@
 # QA Automation with Playwright
 
-End-to-end test suite for the purchase flow of [Practice Software Testing](https://practicesoftwaretesting.com), built with [Playwright Test](https://playwright.dev) and TypeScript using the Page Object Model.
-
-> **Status:** work in progress. The project scaffolding is in place; scenarios are being added incrementally.
-
-## Scenarios
-
-1. **User registration** – register a new user with dynamically generated data and land on the login page.
-2. **Login** – sign in with the newly created user and verify the session is active.
-3. **Add products to the cart** – search products, check name and price in the detail page, add them and verify the cart.
-4. **Invalid login (negative case)** – wrong credentials show an error and do not grant access.
+Automated tests for [Practice Software Testing](https://practicesoftwaretesting.com) built with Playwright Test and TypeScript, using the Page Object Model. They cover user registration, login, adding products to the cart and an invalid login.
 
 ## Requirements
 
-- [Node.js](https://nodejs.org) 18 or later
-- npm (bundled with Node.js)
+- [Node.js](https://nodejs.org) 20 or later (npm is included)
+- Internet access: the tests run against the public site and its API (`https://api.practicesoftwaretesting.com`)
 
 ## Installation
 
-```bash
-npm install
-npx playwright install --with-deps
-```
+1. Clone the repository and install the dependencies:
 
-## Environment variables
+   ```bash
+   git clone https://github.com/reneddc/qa-automation-test-playwright.git
+   cd qa-automation-test-playwright
+   npm install
+   ```
 
-Test data is read from a `.env` file (ignored by git). Create it from the example and adjust the values:
+2. Install the Playwright browsers (chromium, firefox and webkit). On Linux add `--with-deps` to also install the system libraries:
 
-```bash
-cp .env.example .env
-```
+   ```bash
+   npx playwright install
+   ```
 
-| Variable | Description |
-|---|---|
-| `CANDIDATE_EMAIL` | Email used to register. `+<browser>-<timestamp>` is added to the local part on every run so it is unique. |
-| `USER_FIRST_NAME`, `USER_LAST_NAME` | Base names; a short suffix (2 letters of the browser + `MMddHHmmss`) is appended on every run. The result is capped at 20 characters. |
-| `USER_DOB`, `USER_PHONE` | Fixed date of birth (`YYYY-MM-DD`) and phone. |
-| `USER_PASSWORD` | Base password; the last 4 digits of the timestamp are appended. |
-| `REGISTER_COUNTRY`, `REGISTER_POSTCODE`, `REGISTER_HOUSE_NUMBER` | Country (ISO code), postal code and house number used in the registration. |
-| `REGISTER_EXPECTED_STREET`, `REGISTER_EXPECTED_CITY`, `REGISTER_EXPECTED_STATE` | Values the app autofills for the data above. |
+3. Create the `.env` file from the example. The tests read their data from it and fail with a clear message if it is missing:
 
-Notes about the site:
+   macOS / Linux / Git Bash:
 
-- The address autofill only works when the postal code is valid for the selected country. With `0000`, Bolivia (`BO`) and Argentina (`AR`) work; the United States and Spain do not.
-- The registration form rejects names longer than 20 characters (`The last name field must not be greater than 20 characters.`), even though nothing in the form shows that limit up front.
-- The login error message (`Invalid email or password`) is not translated: it appears in English even when the site runs in Spanish.
-- The site has no way for a customer to delete an account, so every run leaves new users behind (one per browser and per test that registers).
-- Tests tagged `@logged-in-user` also get a registered user and are logged in before the test starts.
-- Expected products and prices live in `data/products.json`; if the site changes them, update that file.
-- The tests run with the `es-ES` locale, so the confirmation message is `Producto añadido al carrito.`.
-- Tests tagged `@registered-user` get a freshly registered user as a precondition (done through the UI by a fixture), so they never depend on the data created by another test.
-- The site is sometimes slow to load, which can cause occasional timeouts.
+   ```bash
+   cp .env.example .env
+   ```
+
+   Windows PowerShell:
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+   The example values work as they are. Set `CANDIDATE_EMAIL` in `.env` to your own email if you want to register with it; a unique suffix is added to it on every run.
 
 ## Running the tests
 
+Run the whole suite (chromium, firefox and webkit):
+
 ```bash
-# Run the whole suite (chromium, firefox and webkit)
 npx playwright test
-
-# Run a single browser
-npx playwright test --project=chromium
-
-# Run a single file
-npx playwright test tests/<file>.spec.ts
-
-# Run in headed mode
-npx playwright test --headed
-
-# Open the HTML report
-npx playwright show-report
 ```
 
-Type check:
+Other useful commands:
 
 ```bash
+npx playwright test --project=chromium
+npx playwright test tests/cart.spec.ts
+npx playwright test --headed
+npx playwright test --ui
+npx playwright test --grep @registered-user
 npm run typecheck
 ```
 
-## Project structure
+The HTML report is generated in `playwright-report/` after every run. Open it with:
 
-```
-.
-├── data/                  # Test data (no hardcoded values in tests)
-├── pages/                 # Page Objects (locators + actions, no assertions)
-├── tests/                 # Test specs
-├── playwright.config.ts   # baseURL, reporters, trace/screenshot, browsers
-└── .github/workflows/     # CI workflow
+```bash
+npx playwright show-report
 ```
 
-## Conventions
+Traces and screenshots of failed tests are included in the report.
 
-- Page Object Model: locators and actions live in the page classes; assertions live in the tests.
-- Web-first assertions only (`toBeVisible`, `toHaveText`, `toHaveURL`, …); no fixed waits.
-- Independent tests that can run in any order.
+## Assumptions and limitations
 
-## Assumptions, limitations and improvements
+- **Data:** test data comes from `.env`, made unique on every run with the date/time and the browser. Fixed expected values (products and prices) are in `data/products.json`; if the site changes them, update that file.
+- **Preconditions:** tests are tagged. `@registered-user` creates the user through the API and `@logged-in-user` logs that user in through the UI. Every test creates its own user, so they are independent and run in any order.
+- **Language:** the tests run with the `es-ES` locale, so the cart confirmation message is `Producto añadido al carrito.`. The login error message is not translated by the site and stays in English (`Invalid email or password`).
+- **Address autofill:** it only works when the postal code is valid for the selected country. With `0000`, Bolivia (`BO`) works, and so does Argentina; the United States and Spain do not. The autofilled values for Bolivia (`Rodrigo Avenue`, `Hodkiewiczport`, `South Dakota`) are fixed and set in `.env`.
+- **Names:** the registration form rejects names longer than 20 characters, even though the form does not show that limit.
+- **Accounts pile up:** a customer cannot delete an account, so every run leaves new users on the site (one or two per test and browser).
+- **Site availability:** the site is sometimes slow or resets connections, which can cause an occasional timeout. Re-running the failed test is usually enough; the API registration already retries network resets.
+- **CI:** the `.github/workflows/playwright.yml` file is the default Playwright template and does not set the variables from `.env`, so it is not expected to pass yet.
 
-_To be completed as the implementation progresses. Unexpected behaviors found in the site will be documented here._
+## Improvements with more time
 
-## Video walkthrough
-
-_Link pending._
+- **Pipeline:** adjust the GitHub Actions workflow to create the `.env` values, run the suite and publish the HTML report.
+- **Reuse the session with `storageState`:** log in once and reuse the session instead of logging in through the UI in each test that needs it.
+- **Log in through the API:** extend the user client to obtain the session by API and leave the UI login only for the login scenarios.
+- **Base classes:** add a `BasePage` for the shared page logic and a `BaseClient` for the shared API logic.
+- **BDD:** describe the scenarios in Gherkin (for example with `playwright-bdd`) so they are readable by non-technical people.
