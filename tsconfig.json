@@ -12,6 +12,7 @@
     "tests/**/*.ts",
     "pages/**/*.ts",
     "data/**/*.ts",
+    "clients/**/*.ts",
     "config/**/*.ts",
     "entities/**/*.ts",
     "fixtures/**/*.ts",

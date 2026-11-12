@@ -6,7 +6,7 @@ const productAddedMessage = 'Producto añadido al carrito.';
 test.describe('Shopping cart', () => {
   test(
     'AC-1: a logged-in user adds products to the cart and finds them with the expected quantity and price',
-    { tag: '@logged-in-user' },
+    { tag: ['@registered-user', '@logged-in-user'] },
     async ({ homePage, productPage, header, cartPage }) => {
       await test.step('Verify the cart icon has no counter yet', async () => {
         await expect(header.cartCount()).toHaveCount(0);

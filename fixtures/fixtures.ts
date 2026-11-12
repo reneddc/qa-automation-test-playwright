@@ -1,4 +1,5 @@
 import { test as base } from '@playwright/test';
+import { UserClient } from '../clients/user.client';
 import { createUser } from '../data/user.factory';
 import type { User } from '../entities/user';
 import { CartPage } from '../pages/cart.page';
@@ -8,6 +9,10 @@ import { LoginPage } from '../pages/login.page';
 import { ProductPage } from '../pages/product.page';
 import { RegisterPage } from '../pages/register.page';
 
+export type TestOptions = {
+  apiBaseURL: string;
+};
+
 type Fixtures = {
   registerPage: RegisterPage;
   loginPage: LoginPage;
@@ -15,15 +20,14 @@ type Fixtures = {
   productPage: ProductPage;
   cartPage: CartPage;
   header: HeaderComponent;
+  userClient: UserClient;
   user: User;
   registeredUser: User;
   loggedInUser: User;
 };
 
-const REGISTERED_USER_TAG = '@registered-user';
-const LOGGED_IN_USER_TAG = '@logged-in-user';
-
-export const test = base.extend<Fixtures>({
+export const test = base.extend<Fixtures & TestOptions>({
+  apiBaseURL: ['', { option: true }],
   registerPage: async ({ page }, use) => {
     await use(new RegisterPage(page));
   },
@@ -42,22 +46,18 @@ export const test = base.extend<Fixtures>({
   header: async ({ page }, use) => {
     await use(new HeaderComponent(page));
   },
+  userClient: async ({ playwright, apiBaseURL }, use) => {
+    const request = await playwright.request.newContext({ baseURL: apiBaseURL });
+    await use(new UserClient(request));
+    await request.dispose();
+  },
   user: async ({}, use, testInfo) => {
     await use(createUser(testInfo.project.name));
   },
   registeredUser: [
-    async ({ user, registerPage, page }, use, testInfo) => {
-      const needsRegistration = [REGISTERED_USER_TAG, LOGGED_IN_USER_TAG].some((tag) =>
-        testInfo.tags.includes(tag),
-      );
-      if (needsRegistration) {
-        await registerPage.goto();
-        await registerPage.fillPersonalData(user);
-        await registerPage.fillAddress(user);
-        await registerPage.waitForAddressAutofill();
-        await registerPage.fillContact(user);
-        await registerPage.submit();
-        await page.waitForURL('/auth/login');
+    async ({ user, userClient }, use, testInfo) => {
+      if (testInfo.tags.includes('@registered-user')) {
+        await userClient.register(user);
       }
       await use(user);
     },
@@ -65,7 +65,7 @@ export const test = base.extend<Fixtures>({
   ],
   loggedInUser: [
     async ({ registeredUser, loginPage, page }, use, testInfo) => {
-      if (testInfo.tags.includes(LOGGED_IN_USER_TAG)) {
+      if (testInfo.tags.includes('@logged-in-user')) {
         await loginPage.goto();
         await loginPage.login(registeredUser);
         await page.waitForURL('/account');
