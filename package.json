@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
-    "test:report": "playwright test --reporter=html,line",
+    "test:report": "playwright test",
     "report": "playwright show-report",
     "typecheck": "tsc --noEmit"
   },
