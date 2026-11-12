@@ -45,6 +45,9 @@ Notes about the site:
 - The address autofill only works when the postal code is valid for the selected country. With `0000`, Bolivia (`BO`) and Argentina (`AR`) work; the United States and Spain do not.
 - The registration form rejects names longer than 20 characters (`The last name field must not be greater than 20 characters.`), even though nothing in the form shows that limit up front.
 - The site has no way for a customer to delete an account, so every run leaves new users behind (one per browser and per test that registers).
+- Tests tagged `@logged-in-user` also get a registered user and are logged in before the test starts.
+- Expected products and prices live in `data/products.json`; if the site changes them, update that file.
+- The tests run with the `es-ES` locale, so the confirmation message is `Producto añadido al carrito.` (`data/messages.json`).
 - Tests tagged `@registered-user` get a freshly registered user as a precondition (done through the UI by a fixture), so they never depend on the data created by another test.
 - The site is sometimes slow to load, which can cause occasional timeouts.
 

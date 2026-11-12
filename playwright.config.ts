@@ -25,6 +25,8 @@ export default defineConfig({
     /* The app marks its elements with data-test, not data-testid. */
     testIdAttribute: 'data-test',
 
+    locale: 'es-ES',
+
     /* Evidence kept only when a test fails. */
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
