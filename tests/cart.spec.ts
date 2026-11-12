@@ -1,6 +1,7 @@
-import { messages } from '../data/messages';
 import { products } from '../data/products';
 import { expect, test } from '../fixtures/fixtures';
+
+const productAddedMessage = 'Producto añadido al carrito.';
 
 test.describe('Shopping cart', () => {
   test(
@@ -21,7 +22,7 @@ test.describe('Shopping cart', () => {
           await expect(productPage.price()).toHaveText(product.price);
 
           await productPage.addToCart(product.quantity);
-          await expect(productPage.addedToCartMessage()).toHaveText(messages.productAddedToCart);
+          await expect(productPage.addedToCartMessage()).toHaveText(productAddedMessage);
           unitsInCart += product.quantity;
           await expect(header.cartCount()).toHaveText(String(unitsInCart));
         });
