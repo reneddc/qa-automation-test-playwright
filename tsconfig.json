@@ -5,12 +5,14 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "types": ["node"]
   },
   "include": [
     "tests/**/*.ts",
     "pages/**/*.ts",
     "data/**/*.ts",
+    "clients/**/*.ts",
     "config/**/*.ts",
     "entities/**/*.ts",
     "fixtures/**/*.ts",

@@ -56,15 +56,6 @@ export class RegisterPage {
     await this.houseNumberInput.fill(user.houseNumber);
   }
 
-  async waitForAddressAutofill(): Promise<void> {
-    await this.page.waitForFunction(() =>
-      ['street', 'city', 'state'].every((name) => {
-        const input = document.querySelector<HTMLInputElement>(`[data-test="${name}"]`);
-        return input !== null && input.value !== '';
-      }),
-    );
-  }
-
   captureAddress(): AddressLocators {
     return {
       street: this.streetInput,

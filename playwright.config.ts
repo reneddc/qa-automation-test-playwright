@@ -1,12 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
+import type { TestOptions } from './fixtures/fixtures';
 
 dotenv.config({ quiet: true });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
-export default defineConfig({
+export default defineConfig<TestOptions>({
   testDir: './tests',
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -21,9 +22,12 @@ export default defineConfig({
   use: {
     /* Allows page.goto('/path') instead of absolute URLs. */
     baseURL: 'https://practicesoftwaretesting.com',
+    apiBaseURL: 'https://api.practicesoftwaretesting.com',
 
     /* The app marks its elements with data-test, not data-testid. */
     testIdAttribute: 'data-test',
+
+    locale: 'es-ES',
 
     /* Evidence kept only when a test fails. */
     trace: 'retain-on-failure',
