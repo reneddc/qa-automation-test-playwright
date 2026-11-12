@@ -23,6 +23,31 @@ npm install
 npx playwright install --with-deps
 ```
 
+## Environment variables
+
+Test data is read from a `.env` file (ignored by git). Create it from the example and adjust the values:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Description |
+|---|---|
+| `CANDIDATE_EMAIL` | Email used to register. `+<browser>-<timestamp>` is added to the local part on every run so it is unique. |
+| `USER_FIRST_NAME`, `USER_LAST_NAME` | Base names; a short suffix (2 letters of the browser + `MMddHHmmss`) is appended on every run. The result is capped at 20 characters. |
+| `USER_DOB`, `USER_PHONE` | Fixed date of birth (`YYYY-MM-DD`) and phone. |
+| `USER_PASSWORD` | Base password; the last 4 digits of the timestamp are appended. |
+| `REGISTER_COUNTRY`, `REGISTER_POSTCODE`, `REGISTER_HOUSE_NUMBER` | Country (ISO code), postal code and house number used in the registration. |
+| `REGISTER_EXPECTED_STREET`, `REGISTER_EXPECTED_CITY`, `REGISTER_EXPECTED_STATE` | Values the app autofills for the data above. |
+
+Notes about the site:
+
+- The address autofill only works when the postal code is valid for the selected country. With `0000`, Bolivia (`BO`) and Argentina (`AR`) work; the United States and Spain do not.
+- The registration form rejects names longer than 20 characters (`The last name field must not be greater than 20 characters.`), even though nothing in the form shows that limit up front.
+- The site has no way for a customer to delete an account, so every run leaves new users behind (one per browser and per test that registers).
+- Tests tagged `@registered-user` get a freshly registered user as a precondition (done through the UI by a fixture), so they never depend on the data created by another test.
+- The site is sometimes slow to load, which can cause occasional timeouts.
+
 ## Running the tests
 
 ```bash
